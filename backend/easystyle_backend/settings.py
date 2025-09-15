@@ -86,8 +86,15 @@ WSGI_APPLICATION = "easystyle_backend.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": config('SUPABASE_DB_NAME', default='postgres'),
+        "USER": config('SUPABASE_DB_USER', default='postgres'),
+        "PASSWORD": config('SUPABASE_DB_PASSWORD', default=''),
+        "HOST": config('SUPABASE_DB_HOST', default='localhost'),
+        "PORT": config('SUPABASE_DB_PORT', default='5432'),
+        "OPTIONS": {
+            "sslmode": "require",
+        },
     }
 }
 
@@ -150,14 +157,10 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings for frontend integration
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:5174",
-]
+CORS_ALLOWED_ORIGINS = config(
+    'CORS_ALLOWED_ORIGINS', 
+    default='http://localhost:3000,http://localhost:5173,http://localhost:5174,http://127.0.0.1:3000,http://127.0.0.1:5173,http://127.0.0.1:5174'
+).split(',')
 
 CORS_ALLOW_CREDENTIALS = True
 
