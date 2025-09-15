@@ -92,7 +92,9 @@ class ApiClient {
 
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
+      console.error('API 오류:', response.status, response.statusText);
       const errorData = await response.json().catch(() => ({}));
+      console.error('오류 데이터:', errorData);
       throw new Error(errorData.message || `HTTP Error: ${response.status}`);
     }
 
@@ -100,11 +102,16 @@ class ApiClient {
   }
 
   async get<T>(endpoint: string): Promise<T> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
+    const url = `${this.baseURL}${endpoint}`;
+    console.log('API GET 요청:', url);
+    
+    const response = await fetch(url, {
       method: 'GET',
       headers: this.getHeaders(),
     });
 
+    console.log('API 응답 상태:', response.status, response.statusText);
+    
     return this.handleResponse<T>(response);
   }
 
