@@ -1,11 +1,11 @@
 // Service Worker for EasyStyle PWA
-const CACHE_NAME = 'easystyle-v1.0.0';
+const CACHE_NAME = 'easystyle-v1.0.1';
 const STATIC_CACHE_URLS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  '/icons/icon-192x192.svg',
+  '/icons/icon-512x512.svg'
 ];
 
 // Install event - cache static resources
@@ -94,15 +94,15 @@ self.addEventListener('push', event => {
   const data = event.data.json();
   const options = {
     body: data.body,
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-96x96.png',
+    icon: '/icons/icon-192x192.svg',
+    badge: '/icons/icon-192x192.svg',
     vibrate: [200, 100, 200],
     data: data.data || {},
     actions: [
       {
         action: 'open',
         title: '열기',
-        icon: '/icons/icon-96x96.png'
+        icon: '/icons/icon-192x192.svg'
       },
       {
         action: 'close',
