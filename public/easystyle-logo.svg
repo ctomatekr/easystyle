@@ -1,0 +1,55 @@
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="30" cy="30" r="25" fill="#87CEEB" opacity="0.1"/>
+  
+  <!-- Clothing Hanger Shape -->
+  <path 
+    d="M10 20 C10 20, 15 15, 30 15 C45 15, 50 20, 50 20" 
+    stroke="#87CEEB" 
+    strokeWidth="3" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+    fill="none"
+  />
+  
+  <!-- Hanger Hook -->
+  <path 
+    d="M30 15 L30 8 C30 6, 28 5, 27 5 C26 5, 25 6, 25 8" 
+    stroke="#87CEEB" 
+    strokeWidth="3" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+    fill="none"
+  />
+  
+  <!-- Clothing Silhouette -->
+  <path 
+    d="M10 20 L10 25 C10 25, 13 28, 16 30 L16 45 C16 48, 18 50, 21 50 L39 50 C42 50, 44 48, 44 45 L44 30 C47 28, 50 25, 50 25 L50 20" 
+    stroke="#87CEEB" 
+    strokeWidth="2.5" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+    fill="none"
+  />
+  
+  <!-- Checkmark inside clothing -->
+  <path 
+    d="M22 32 L27 37 L38 26" 
+    stroke="#FFD700" 
+    strokeWidth="3" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+    fill="none"
+  />
+  
+  <!-- Smiley face elements -->
+  <circle cx="24" cy="24" r="1.5" fill="#FFA500"/>
+  <circle cx="36" cy="24" r="1.5" fill="#FFA500"/>
+  
+  <!-- Text Logo -->
+  <text x="70" y="25" font-family="Quicksand, sans-serif" font-size="20" font-weight="700" fill="#1e293b">Easy</text>
+  <text x="70" y="45" font-family="Quicksand, sans-serif" font-size="20" font-weight="400" fill="#87CEEB">Style</text>
+  
+  <!-- Tagline -->
+  <text x="140" y="35" font-family="Quicksand, sans-serif" font-size="10" fill="#64748b">Style Made Simple</text>
+</svg>

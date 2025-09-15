@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>반응형 및 접근성 테스트</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .viewport-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-white">
+    <div class="viewport-indicator" id="viewportInfo">
+        <div id="screenSize"></div>
+        <div id="orientation"></div>
+    </div>
+
+    <div class="max-w-lg mx-auto bg-slate-900 min-h-screen p-4">
+        <h1 class="text-2xl font-bold mb-6">모바일 반응형 테스트</h1>
+        
+        <!-- 브레이크포인트 테스트 -->
+        <div class="grid gap-4 mb-8">
+            <div class="bg-slate-800 p-4 rounded-lg">
+                <h2 class="text-lg font-bold mb-4">반응형 그리드 테스트</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <div class="bg-blue-600 p-4 rounded text-center">모바일: 1열</div>
+                    <div class="bg-green-600 p-4 rounded text-center">태블릿: 2열</div>
+                    <div class="bg-purple-600 p-4 rounded text-center">데스크톱: 3열</div>
+                </div>
+            </div>
+
+            <div class="bg-slate-800 p-4 rounded-lg">
+                <h2 class="text-lg font-bold mb-4">타이포그래피 스케일링</h2>
+                <h1 class="text-xl md:text-3xl font-bold mb-2">제목 (반응형)</h1>
+                <p class="text-sm md:text-base">본문 텍스트 (반응형)</p>
+            </div>
+        </div>
+
+        <!-- 터치 인터페이스 테스트 -->
+        <div class="bg-slate-800 p-4 rounded-lg mb-8">
+            <h2 class="text-lg font-bold mb-4">터치 인터페이스 테스트</h2>
+            <div class="space-y-4">
+                <button class="w-full bg-amber-400 text-slate-900 font-bold py-4 px-4 rounded-lg text-lg"
+                        style="min-height: 44px;" onclick="testTouch(this)">
+                    큰 터치 영역 (44px+)
+                </button>
+                <div class="flex space-x-2">
+                    <button class="flex-1 bg-slate-700 text-slate-200 py-3 px-4 rounded-lg"
+                            style="min-height: 44px;" onclick="testTouch(this)">
+                        좌측
+                    </button>
+                    <button class="flex-1 bg-slate-700 text-slate-200 py-3 px-4 rounded-lg"
+                            style="min-height: 44px;" onclick="testTouch(this)">
+                        우측
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 접근성 테스트 -->
+        <div class="bg-slate-800 p-4 rounded-lg mb-8">
+            <h2 class="text-lg font-bold mb-4">접근성 테스트</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-slate-300 mb-1">
+                        이메일 (레이블 연결)
+                    </label>
+                    <input type="email" id="email" 
+                           class="w-full bg-slate-700 border-2 border-slate-600 rounded-lg p-3 text-slate-100 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+                           aria-describedby="email-help">
+                    <p id="email-help" class="text-xs text-slate-400 mt-1">올바른 이메일 형식으로 입력하세요</p>
+                </div>
+                
+                <button class="bg-green-600 text-white px-4 py-2 rounded focus:ring-2 focus:ring-green-400 focus:outline-none"
+                        aria-label="접근성 테스트 버튼 - 성공 메시지 표시">
+                    접근성 버튼 (aria-label)
+                </button>
+                
+                <div role="alert" id="alertMessage" class="hidden bg-yellow-600 text-black p-3 rounded">
+                    스크린 리더 알림 메시지
+                </div>
+            </div>
+        </div>
+
+        <!-- PWA 설치 테스트 -->
+        <div class="bg-slate-800 p-4 rounded-lg mb-8">
+            <h2 class="text-lg font-bold mb-4">PWA 설치 테스트</h2>
+            <div class="space-y-2 text-sm">
+                <p id="installStatus" class="text-yellow-400">설치 상태 확인 중...</p>
+                <button id="installButton" class="bg-amber-400 text-black px-4 py-2 rounded hidden">
+                    홈스크린에 추가
+                </button>
+            </div>
+        </div>
+
+        <!-- 성능 지표 -->
+        <div class="bg-slate-800 p-4 rounded-lg">
+            <h2 class="text-lg font-bold mb-4">성능 지표</h2>
+            <div class="space-y-2 text-sm">
+                <p>페이지 로드 시간: <span id="loadTime" class="text-green-400">측정 중...</span></p>
+                <p>뷰포트 크기: <span id="viewportSize" class="text-blue-400">-</span></p>
+                <p>픽셀 비율: <span id="pixelRatio" class="text-purple-400">-</span></p>
+                <p>연결 상태: <span id="connectionStatus" class="text-green-400">온라인</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 뷰포트 정보 업데이트
+        function updateViewportInfo() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const orientation = window.orientation !== undefined ? 
+                (Math.abs(window.orientation) === 90 ? 'landscape' : 'portrait') : 
+                (width > height ? 'landscape' : 'portrait');
+            
+            document.getElementById('screenSize').textContent = `${width}x${height}`;
+            document.getElementById('orientation').textContent = orientation;
+            document.getElementById('viewportSize').textContent = `${width}x${height}`;
+            document.getElementById('pixelRatio').textContent = window.devicePixelRatio || 1;
+        }
+
+        // 터치 테스트
+        function testTouch(button) {
+            button.style.transform = 'scale(0.95)';
+            button.style.backgroundColor = '#10b981';
+            setTimeout(() => {
+                button.style.transform = '';
+                button.style.backgroundColor = '';
+            }, 150);
+        }
+
+        // PWA 설치 기능
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installButton').classList.remove('hidden');
+            document.getElementById('installStatus').textContent = '✅ PWA 설치 가능';
+        });
+
+        document.getElementById('installButton').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                document.getElementById('installStatus').textContent = 
+                    outcome === 'accepted' ? '✅ PWA 설치됨' : '❌ 설치 취소됨';
+                deferredPrompt = null;
+                document.getElementById('installButton').classList.add('hidden');
+            }
+        });
+
+        // 연결 상태 모니터링
+        function updateConnectionStatus() {
+            const status = navigator.onLine ? '✅ 온라인' : '❌ 오프라인';
+            document.getElementById('connectionStatus').textContent = status;
+        }
+
+        // 페이지 로드 시간 측정
+        window.addEventListener('load', () => {
+            const loadTime = performance.now();
+            document.getElementById('loadTime').textContent = `${Math.round(loadTime)}ms`;
+            
+            // 초기 뷰포트 정보 설정
+            updateViewportInfo();
+            updateConnectionStatus();
+        });
+
+        // 이벤트 리스너 등록
+        window.addEventListener('resize', updateViewportInfo);
+        window.addEventListener('orientationchange', updateViewportInfo);
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+
+        // 키보드 접근성 테스트
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                // Tab 네비게이션 시각화
+                document.activeElement.style.outline = '2px solid #f59e0b';
+            }
+        });
+
+        // 접근성 알림 테스트
+        document.querySelector('[aria-label*="접근성"]').addEventListener('click', () => {
+            const alert = document.getElementById('alertMessage');
+            alert.classList.remove('hidden');
+            alert.textContent = '✅ 접근성 테스트 성공! 스크린 리더가 이 메시지를 읽을 수 있습니다.';
+            setTimeout(() => alert.classList.add('hidden'), 3000);
+        });
+
+        // 초기 실행
+        updateViewportInfo();
+        updateConnectionStatus();
+    </script>
+</body>
+</html>

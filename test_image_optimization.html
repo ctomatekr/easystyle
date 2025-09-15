@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이미지 최적화 테스트</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white p-8">
+    <h1 class="text-2xl font-bold mb-6">이미지 최적화 기능 테스트</h1>
+    
+    <div class="space-y-4">
+        <input type="file" id="fileInput" accept="image/*" class="block">
+        <button onclick="testImageOptimization()" class="bg-amber-400 text-black px-4 py-2 rounded">
+            최적화 테스트
+        </button>
+        <div id="results" class="mt-4"></div>
+    </div>
+
+    <script type="module">
+        // Import optimization functions
+        import { optimizeImage, validateImageFile, createThumbnail } from './utils/imageOptimization.js';
+        
+        window.testImageOptimization = async function() {
+            const fileInput = document.getElementById('fileInput');
+            const results = document.getElementById('results');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                results.innerHTML = '<p class="text-red-400">파일을 선택해주세요.</p>';
+                return;
+            }
+            
+            results.innerHTML = '<p class="text-yellow-400">테스트 진행 중...</p>';
+            
+            try {
+                // Test validation
+                console.log('1. 파일 검증 테스트');
+                const validation = validateImageFile(file);
+                console.log('검증 결과:', validation);
+                
+                if (!validation.valid) {
+                    results.innerHTML = `<p class="text-red-400">검증 실패: ${validation.error}</p>`;
+                    return;
+                }
+                
+                // Test optimization
+                console.log('2. 이미지 최적화 테스트');
+                const originalSize = Math.round(file.size / 1024);
+                const startTime = Date.now();
+                
+                const optimized = await optimizeImage(file, {
+                    maxWidth: 1024,
+                    maxHeight: 1024,
+                    quality: 0.85,
+                    format: 'jpeg'
+                });
+                
+                const optimizedSize = Math.round(optimized.blob.size / 1024);
+                const processingTime = Date.now() - startTime;
+                
+                // Test thumbnail
+                console.log('3. 썸네일 생성 테스트');
+                const thumbnail = await createThumbnail(file, 150);
+                
+                results.innerHTML = `
+                    <div class="space-y-2 text-sm">
+                        <p class="text-green-400">✅ 모든 테스트 통과!</p>
+                        <p>원본 크기: ${originalSize}KB</p>
+                        <p>최적화 크기: ${optimizedSize}KB</p>
+                        <p>압축률: ${Math.round((1 - optimizedSize/originalSize) * 100)}%</p>
+                        <p>처리 시간: ${processingTime}ms</p>
+                        <div class="mt-4">
+                            <p class="mb-2">최적화된 이미지:</p>
+                            <img src="${optimized.url}" class="max-w-xs rounded" alt="Optimized">
+                        </div>
+                        <div class="mt-4">
+                            <p class="mb-2">썸네일 (150px):</p>
+                            <img src="${thumbnail}" class="w-24 h-24 rounded" alt="Thumbnail">
+                        </div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('테스트 실패:', error);
+                results.innerHTML = `<p class="text-red-400">테스트 실패: ${error.message}</p>`;
+            }
+        };
+    </script>
+</body>
+</html>
