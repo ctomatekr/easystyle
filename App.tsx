@@ -3,11 +3,14 @@ import { AppScreen, Product, ProductCategory } from './types';
 import { generateStyle, getProductsForStyle, validatePrompt, cropImageForProduct } from './services/geminiService';
 import { optimizeImage, validateImageFile } from './utils/imageOptimization';
 import { productsAPI, authAPI, apiUtils } from './services/apiService';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Header from './components/Header';
 import Spinner from './components/Spinner';
 import ProductCard from './components/ProductCard';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSkeleton from './components/SkeletonUI';
+import LoginForm from './components/Auth/LoginForm';
+import SignUpForm from './components/Auth/SignUpForm';
 import { CameraIcon, GalleryIcon, SparklesIcon } from './components/icons';
 
 type AIQuestion = {
@@ -15,7 +18,8 @@ type AIQuestion = {
   examples: string[];
 };
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
+    const { user, isAuthenticated, logout } = useAuth();
     const [screen, setScreen] = useState<AppScreen>(AppScreen.Home);
     const [originalImage, setOriginalImage] = useState<{ base64: string; mimeType: string; url: string } | null>(null);
     const [prompt, setPrompt] = useState('');
@@ -28,6 +32,14 @@ const App: React.FC = () => {
     const [loadingMessage, setLoadingMessage] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [aiQuestion, setAiQuestion] = useState<AIQuestion | null>(null);
+
+    // 인증 모달 상태
+    const [showLoginForm, setShowLoginForm] = useState(false);
+    const [showSignUpForm, setShowSignUpForm] = useState(false);
+
+    // 알림 및 MyPage 상태
+    const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+    const [showMyPageMenu, setShowMyPageMenu] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -243,6 +255,56 @@ const App: React.FC = () => {
         setRequestDetails({ count: items.length, total });
     };
 
+    // 알림 표시 함수
+    const showNotification = (message: string, type: 'success' | 'error' | 'info') => {
+        setNotification({ message, type });
+        setTimeout(() => setNotification(null), 5000); // 5초 후 자동 숨김
+    };
+
+    // 인증 성공 핸들러
+    const handleAuthSuccess = (isSignUp: boolean = false) => {
+        setShowLoginForm(false);
+        setShowSignUpForm(false);
+        setError(null);
+
+        // 성공 메시지 표시 (사용자 정보가 업데이트될 때까지 약간의 지연)
+        setTimeout(() => {
+            if (isSignUp) {
+                showNotification('회원가입이 완료되었습니다! 자동으로 로그인되었습니다.', 'success');
+            } else {
+                showNotification('로그인되었습니다. 환영합니다!', 'success');
+            }
+        }, 100);
+    };
+
+    // 로그인/회원가입 모달 전환
+    const switchToSignUp = () => {
+        setShowLoginForm(false);
+        setShowSignUpForm(true);
+    };
+
+    const switchToLogin = () => {
+        setShowSignUpForm(false);
+        setShowLoginForm(true);
+    };
+
+    const closeAuthModals = () => {
+        setShowLoginForm(false);
+        setShowSignUpForm(false);
+    };
+
+    // MyPage 메뉴 토글
+    const toggleMyPageMenu = () => {
+        setShowMyPageMenu(!showMyPageMenu);
+    };
+
+    // 로그아웃 핸들러
+    const handleLogout = async () => {
+        await logout();
+        setShowMyPageMenu(false);
+        showNotification('로그아웃되었습니다.', 'info');
+    };
+
     const renderHome = () => (
         <div className="flex flex-col items-center justify-center h-full text-center p-8">
             <div className="bg-slate-800 p-8 rounded-2xl shadow-2xl max-w-sm w-full">
@@ -261,14 +323,87 @@ const App: React.FC = () => {
                 <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
             </div>
 
-            <div className="mt-8 flex items-center gap-4">
-                 <button onClick={() => alert('Login feature coming soon!')} className="text-slate-400 hover:text-slate-200 transition-colors text-sm font-medium">
-                    Login
-                </button>
-                <div className="w-px h-4 bg-slate-600"></div>
-                <button onClick={() => alert('Sign up feature coming soon!')} className="text-slate-400 hover:text-slate-200 transition-colors text-sm font-medium">
-                    Sign Up
-                </button>
+            <div className="mt-8 flex items-center justify-center">
+                {isAuthenticated ? (
+                    <div className="relative">
+                        <div className="flex items-center gap-4">
+                            <span className="text-slate-300 text-sm">
+                                안녕하세요, {user?.first_name || user?.username}님!
+                            </span>
+                            <button
+                                onClick={toggleMyPageMenu}
+                                className="bg-amber-400 text-slate-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-amber-300 transition-colors"
+                            >
+                                MyPage
+                            </button>
+                        </div>
+
+                        {/* MyPage 드롭다운 메뉴 */}
+                        {showMyPageMenu && (
+                            <div className="mypage-menu absolute top-full right-0 mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-50 min-w-48">
+                                <div className="p-4 border-b border-slate-700">
+                                    <div className="text-slate-300 text-sm">
+                                        <p className="font-medium">{user?.first_name} {user?.last_name}</p>
+                                        <p className="text-slate-400">{user?.email}</p>
+                                        <p className="text-slate-400">{user?.username}</p>
+                                    </div>
+                                </div>
+                                <div className="p-2">
+                                    <button
+                                        onClick={() => {
+                                            setShowMyPageMenu(false);
+                                            showNotification('프로필 페이지 준비 중입니다.', 'info');
+                                        }}
+                                        className="w-full text-left px-3 py-2 text-slate-300 hover:bg-slate-700 rounded text-sm"
+                                    >
+                                        프로필 수정
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowMyPageMenu(false);
+                                            showNotification('주문 내역 페이지 준비 중입니다.', 'info');
+                                        }}
+                                        className="w-full text-left px-3 py-2 text-slate-300 hover:bg-slate-700 rounded text-sm"
+                                    >
+                                        주문 내역
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowMyPageMenu(false);
+                                            showNotification('설정 페이지 준비 중입니다.', 'info');
+                                        }}
+                                        className="w-full text-left px-3 py-2 text-slate-300 hover:bg-slate-700 rounded text-sm"
+                                    >
+                                        설정
+                                    </button>
+                                    <hr className="border-slate-700 my-2" />
+                                    <button
+                                        onClick={handleLogout}
+                                        className="w-full text-left px-3 py-2 text-red-400 hover:bg-slate-700 rounded text-sm"
+                                    >
+                                        로그아웃
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setShowLoginForm(true)}
+                            className="text-slate-400 hover:text-slate-200 transition-colors text-sm font-medium"
+                        >
+                            Login
+                        </button>
+                        <div className="w-px h-4 bg-slate-600"></div>
+                        <button
+                            onClick={() => setShowSignUpForm(true)}
+                            className="text-slate-400 hover:text-slate-200 transition-colors text-sm font-medium"
+                        >
+                            Sign Up
+                        </button>
+                    </div>
+                )}
             </div>
 
             {error && <p className="text-red-400 mt-4">{error}</p>}
@@ -379,11 +514,38 @@ const App: React.FC = () => {
         );
     };
 
+    // MyPage 메뉴 외부 클릭 감지를 위한 useEffect
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (showMyPageMenu) {
+                const target = event.target as Element;
+                if (!target.closest('.mypage-menu')) {
+                    setShowMyPageMenu(false);
+                }
+            }
+        };
+
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
+    }, [showMyPageMenu]);
+
     return (
         <ErrorBoundary>
             <div className="bg-slate-900 min-h-screen text-slate-100">
                 <div className="max-w-lg mx-auto bg-slate-900 min-h-screen flex flex-col">
                     <Header onBack={handleBack} showBackButton={screen !== AppScreen.Home} />
+
+                    {/* 알림 메시지 */}
+                    {notification && (
+                        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-lg shadow-lg ${
+                            notification.type === 'success' ? 'bg-green-500 text-white' :
+                            notification.type === 'error' ? 'bg-red-500 text-white' :
+                            'bg-blue-500 text-white'
+                        }`}>
+                            {notification.message}
+                        </div>
+                    )}
+
                     <main className="flex-grow">
                         {isLoading && (
                             <div className="relative">
@@ -399,7 +561,33 @@ const App: React.FC = () => {
                     </main>
                 </div>
             </div>
+
+            {/* 인증 모달들 */}
+            {showLoginForm && (
+                <LoginForm
+                    onSuccess={() => handleAuthSuccess(false)}
+                    onSwitchToSignUp={switchToSignUp}
+                    onClose={closeAuthModals}
+                />
+            )}
+
+            {showSignUpForm && (
+                <SignUpForm
+                    onSuccess={() => handleAuthSuccess(true)}
+                    onSwitchToLogin={switchToLogin}
+                    onClose={closeAuthModals}
+                />
+            )}
         </ErrorBoundary>
+    );
+};
+
+// 메인 App 컴포넌트 (AuthProvider로 래핑)
+const App: React.FC = () => {
+    return (
+        <AuthProvider>
+            <AppContent />
+        </AuthProvider>
     );
 };
 

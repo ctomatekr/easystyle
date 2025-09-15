@@ -1,3 +1,9 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+body {
+  font-family: 'Quicksand', 'Noto Sans KR', sans-serif;
+}
+
+.logo-text {
+  font-family: 'Quicksand', sans-serif;
+}

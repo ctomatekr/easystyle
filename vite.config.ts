@@ -20,6 +20,17 @@ export default defineConfig(({ mode }) => {
           }
         }
       },
-      publicDir: 'public'
+      publicDir: 'public',
+      server: {
+        port: 5173,
+        hmr: {
+          port: 5173,
+          host: 'localhost'
+        },
+        watch: {
+          usePolling: false,
+          interval: 1000
+        }
+      }
     };
 });

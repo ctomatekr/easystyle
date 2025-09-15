@@ -165,8 +165,10 @@ export const authAPI = {
     email: string;
     first_name: string;
     last_name: string;
+    full_name?: string;
     password: string;
     password_confirm: string;
+    phone_number?: string;
   }): Promise<AuthResponse> {
     const response = await apiClient.post<AuthResponse>('/auth/register/', userData);
     apiClient.setAuthToken(response.token);
