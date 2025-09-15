@@ -97,3 +97,4 @@ dmypy.json
 # Temporary files
 *.tmp
 *.temp
+.vercel

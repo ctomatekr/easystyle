@@ -171,14 +171,14 @@ const App: React.FC = () => {
         setError(null);
 
         try {
-            setLoadingMessage('AI is creating your perfect style...');
+            setLoadingMessage('AI가 당신의 완벽한 스타일을 생성하고 있습니다...');
             const { styledImageBase64, description } = await generateStyle(originalImage.base64, originalImage.mimeType, finalPrompt);
             setStyledResult({ imageBase64: styledImageBase64, description });
 
-            setLoadingMessage('Finding products that match your style...');
+            setLoadingMessage('당신의 스타일에 맞는 상품을 찾고 있습니다...');
             const productResults = await getProductsForStyle(description);
 
-            setLoadingMessage('Preparing product images...');
+            setLoadingMessage('상품 이미지를 준비하고 있습니다...');
             const productsWithCroppedImages = await Promise.all(
                 productResults.map(async (product) => {
                     const croppedBase64 = await cropImageForProduct(
@@ -209,7 +209,7 @@ const App: React.FC = () => {
         setAiQuestion(null);
         setError(null);
         setIsLoading(true);
-        setLoadingMessage('Validating your style request...');
+        setLoadingMessage('스타일 요청을 검증하고 있습니다...');
 
         const validationResult = await validatePrompt(prompt);
 
@@ -236,7 +236,7 @@ const App: React.FC = () => {
 
     const handlePurchaseRequest = (items: Product[]) => {
         if (items.length === 0) {
-            setError("Please select items to purchase.");
+            setError("구매할 상품을 선택해주세요.");
             return;
         }
         const total = items.reduce((sum, p) => sum + p.price, 0);
@@ -246,16 +246,16 @@ const App: React.FC = () => {
     const renderHome = () => (
         <div className="flex flex-col items-center justify-center h-full text-center p-8">
             <div className="bg-slate-800 p-8 rounded-2xl shadow-2xl max-w-sm w-full">
-                <h1 className="text-3xl font-bold text-slate-100">Your Personal Stylist</h1>
-                <p className="text-slate-400 mt-2 mb-8">Find your perfect style with just one photo.</p>
+                <h1 className="text-3xl font-bold text-slate-100">당신의 개인 스타일리스트</h1>
+                <p className="text-slate-400 mt-2 mb-8">한 장의 사진으로 완벽한 스타일을 찾아보세요.</p>
                 <div className="space-y-4">
                     <button onClick={() => fileInputRef.current?.click()} className="w-full bg-slate-700 text-slate-200 font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-slate-600 transition-colors duration-300">
                         <CameraIcon className="w-6 h-6" />
-                        Take Photo
+                        사진 촬영
                     </button>
                     <button onClick={() => fileInputRef.current?.click()} className="w-full bg-amber-400 text-slate-900 font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-amber-300 transition-colors duration-300 shadow-lg">
                         <GalleryIcon className="w-6 h-6" />
-                        Choose from Gallery
+                        갤러리에서 선택
                     </button>
                 </div>
                 <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
@@ -280,12 +280,12 @@ const App: React.FC = () => {
             <div className="flex-grow overflow-y-auto">
                 {originalImage && <img src={originalImage.url} alt="User upload" className="rounded-lg w-full max-w-md mx-auto shadow-lg" />}
                 <div className="mt-6">
-                    <label htmlFor="prompt" className="block text-lg font-medium text-slate-200 mb-2">What style do you need?</label>
+                    <label htmlFor="prompt" className="block text-lg font-medium text-slate-200 mb-2">어떤 스타일이 필요하신가요?</label>
                     <textarea 
                         id="prompt" 
                         value={prompt} 
                         onChange={(e) => setPrompt(e.target.value)} 
-                        placeholder="Example: Smart casual outfit for dinner with friends" 
+                        placeholder="예시: 친구들과 저녁 식사를 위한 스마트 캐주얼 스타일" 
                         className="w-full bg-white border-2 border-gray-300 rounded-lg p-4 text-gray-900 text-lg focus:ring-2 focus:ring-sky-400 focus:border-sky-400 transition shadow-sm placeholder-gray-500" 
                         rows={4} 
                         style={{ minHeight: '120px' }}
@@ -299,8 +299,8 @@ const App: React.FC = () => {
                                 <button key={i} onClick={() => setUserAnswer(ex)} className="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded-md hover:bg-slate-600">{ex}</button>
                             ))}
                         </div>
-                        <textarea value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} placeholder="Please enter your answer..." className="w-full mt-3 bg-white border-2 border-gray-300 rounded-lg p-3 text-gray-900 text-base" rows={3} />
-                        <button onClick={handleAnswerSubmit} disabled={isLoading || !userAnswer} className="w-full mt-3 bg-sky-400 text-white font-bold py-3 px-4 text-base rounded-lg hover:bg-sky-300 disabled:bg-slate-600">Submit Answer</button>
+                        <textarea value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} placeholder="답변을 입력해주세요..." className="w-full mt-3 bg-white border-2 border-gray-300 rounded-lg p-3 text-gray-900 text-base" rows={3} />
+                        <button onClick={handleAnswerSubmit} disabled={isLoading || !userAnswer} className="w-full mt-3 bg-sky-400 text-white font-bold py-3 px-4 text-base rounded-lg hover:bg-sky-300 disabled:bg-slate-600">답변 제출</button>
                     </div>
                 )}
                  {error && <p className="text-red-400 mt-4 text-sm">{error}</p>}
@@ -308,7 +308,7 @@ const App: React.FC = () => {
             {!aiQuestion && (
                 <button onClick={handleInitialStyleRequest} disabled={isLoading || !prompt} className="w-full mt-6 bg-amber-400 text-slate-900 font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-amber-300 transition-colors duration-300 shadow-lg disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed">
                     <SparklesIcon className="w-6 h-6" />
-                    Generate Style
+                    스타일 생성
                 </button>
             )}
         </div>
@@ -325,12 +325,12 @@ const App: React.FC = () => {
                     <img src={`data:image/png;base64,${styledResult.imageBase64}`} alt="Styled result" className="rounded-lg w-full shadow-2xl" />
                     
                     <div className="my-6">
-                        <h2 className="text-2xl font-bold text-slate-100 mb-2">Style Recommendation</h2>
+                        <h2 className="text-2xl font-bold text-slate-100 mb-2">스타일 추천</h2>
                         <p className="text-slate-300 leading-relaxed">{styledResult.description}</p>
                     </div>
                     
                     <div className="my-6">
-                        <h2 className="text-2xl font-bold text-slate-100 mb-4">Styling Items</h2>
+                        <h2 className="text-2xl font-bold text-slate-100 mb-4">스타일링 아이템</h2>
                         {Object.keys(groupedProducts).length > 0 ? (
                             Object.entries(groupedProducts).map(([category, items]) => (
                                 <div key={category} className="mb-6">
@@ -349,7 +349,7 @@ const App: React.FC = () => {
                                 </div>
                             ))
                         ) : (
-                            <p className="text-slate-400 text-center py-8">No recommended products found.</p>
+                            <p className="text-slate-400 text-center py-8">추천 상품을 찾을 수 없습니다.</p>
                         )}
                     </div>
                     {error && <p className="text-red-400 mt-4 text-sm">{error}</p>}
@@ -358,19 +358,19 @@ const App: React.FC = () => {
                 <div className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-slate-800 border-t border-slate-700 shadow-lg">
                      {requestDetails ? (
                         <div className="p-4 text-center">
-                            <h3 className="font-bold text-lg text-sky-400">Purchase request completed!</h3>
-                            <p className="text-slate-300 text-sm mt-1">Our team will contact you for payment after review.</p>
-                            <p className="text-slate-300 text-sm mt-2">Requested items: {requestDetails.count} / Estimated amount: {formatCurrency(requestDetails.total)}</p>
+                            <h3 className="font-bold text-lg text-sky-400">구매 요청이 완료되었습니다!</h3>
+                            <p className="text-slate-300 text-sm mt-1">검토 후 결제를 위해 연락드리겠습니다.</p>
+                            <p className="text-slate-300 text-sm mt-2">요청 상품: {requestDetails.count}개 / 예상 금액: {formatCurrency(requestDetails.total)}</p>
                         </div>
                      ) : (
                         <div className="p-4">
                             <div className="flex justify-between items-center mb-4">
-                                <span className="text-slate-300">Selected items ({selectedProducts.length})</span>
+                                <span className="text-slate-300">선택된 상품 ({selectedProducts.length}개)</span>
                                 <span className="text-xl font-bold text-amber-400">{formatCurrency(totalPrice)}</span>
                             </div>
                             <div className="flex gap-4">
-                                <button onClick={() => handlePurchaseRequest(selectedProducts)} className="w-full bg-sky-400 text-white font-bold py-3 rounded-lg hover:bg-sky-300 transition-colors">Request Selected Items</button>
-                                <button onClick={() => handlePurchaseRequest(products)} className="w-full bg-yellow-500 text-slate-900 font-bold py-3 rounded-lg hover:bg-yellow-400 transition-colors">Request Complete Style</button>
+                                <button onClick={() => handlePurchaseRequest(selectedProducts)} className="w-full bg-sky-400 text-white font-bold py-3 rounded-lg hover:bg-sky-300 transition-colors">선택한 상품 요청</button>
+                                <button onClick={() => handlePurchaseRequest(products)} className="w-full bg-yellow-500 text-slate-900 font-bold py-3 rounded-lg hover:bg-yellow-400 transition-colors">전체 스타일 요청</button>
                             </div>
                         </div>
                      )}

@@ -50,7 +50,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onSelect
           <p className="text-lg font-bold text-sky-600">{formatPrice(product.price)}</p>
           {product.recommendedSize && (
             <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-              Size: {product.recommendedSize}
+              사이즈: {product.recommendedSize}
             </span>
           )}
         </div>

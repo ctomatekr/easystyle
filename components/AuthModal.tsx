@@ -33,16 +33,16 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
   };
 
   const validateForm = (): string | null => {
-    if (!formData.username.trim()) return 'Username is required';
-    if (!formData.password.trim()) return 'Password is required';
-    if (formData.password.length < 8) return 'Password must be at least 8 characters';
+    if (!formData.username.trim()) return '사용자명이 필요합니다';
+    if (!formData.password.trim()) return '비밀번호가 필요합니다';
+    if (formData.password.length < 8) return '비밀번호는 최소 8자 이상이어야 합니다';
 
     if (mode === 'register') {
-      if (!formData.email.trim()) return 'Email is required';
-      if (!formData.email.includes('@')) return 'Please enter a valid email';
-      if (!formData.first_name.trim()) return 'First name is required';
-      if (!formData.last_name.trim()) return 'Last name is required';
-      if (formData.password !== formData.password_confirm) return 'Passwords do not match';
+      if (!formData.email.trim()) return '이메일이 필요합니다';
+      if (!formData.email.includes('@')) return '올바른 이메일을 입력해주세요';
+      if (!formData.first_name.trim()) return '이름이 필요합니다';
+      if (!formData.last_name.trim()) return '성을 입력해주세요';
+      if (formData.password !== formData.password_confirm) return '비밀번호가 일치하지 않습니다';
     }
 
     return null;
@@ -82,7 +82,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
       resetForm();
     } catch (err: any) {
       console.error('Auth error:', err);
-      setError(err.message || 'Authentication failed. Please try again.');
+      setError(err.message || '인증에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsLoading(false);
     }
@@ -120,7 +120,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-slate-100">
-            {mode === 'login' ? 'Login' : 'Sign Up'}
+            {mode === 'login' ? '로그인' : '회원가입'}
           </h2>
           <button
             onClick={onClose}
@@ -137,7 +137,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">
-                    First Name
+이름
                   </label>
                   <input
                     type="text"
@@ -145,13 +145,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
                     value={formData.first_name}
                     onChange={handleInputChange}
                     className="w-full bg-slate-700 border-2 border-slate-600 rounded-lg p-3 text-slate-100 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
-                    placeholder="First name"
+                    placeholder="이름을 입력하세요"
                     disabled={isLoading}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">
-                    Last Name
+성
                   </label>
                   <input
                     type="text"
@@ -159,7 +159,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
                     value={formData.last_name}
                     onChange={handleInputChange}
                     className="w-full bg-slate-700 border-2 border-slate-600 rounded-lg p-3 text-slate-100 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
-                    placeholder="Last name"
+                    placeholder="성을 입력하세요"
                     disabled={isLoading}
                   />
                 </div>
@@ -167,7 +167,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
 
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">
-                  Email
+이메일
                 </label>
                 <input
                   type="email"
@@ -175,7 +175,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
                   value={formData.email}
                   onChange={handleInputChange}
                   className="w-full bg-slate-700 border-2 border-slate-600 rounded-lg p-3 text-slate-100 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
-                  placeholder="Enter your email"
+                  placeholder="이메일을 입력하세요"
                   disabled={isLoading}
                 />
               </div>
@@ -184,7 +184,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
 
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">
-              Username
+사용자명
             </label>
             <input
               type="text"
@@ -192,14 +192,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
               value={formData.username}
               onChange={handleInputChange}
               className="w-full bg-slate-700 border-2 border-slate-600 rounded-lg p-3 text-slate-100 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
-              placeholder="Enter your username"
+              placeholder="사용자명을 입력하세요"
               disabled={isLoading}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">
-              Password
+비밀번호
             </label>
             <div className="relative">
               <input
@@ -208,7 +208,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
                 value={formData.password}
                 onChange={handleInputChange}
                 className="w-full bg-slate-700 border-2 border-slate-600 rounded-lg p-3 pr-12 text-slate-100 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
-                placeholder="Enter your password"
+                placeholder="비밀번호를 입력하세요"
                 disabled={isLoading}
               />
               <button
@@ -228,7 +228,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
           {mode === 'register' && (
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1">
-                Confirm Password
+비밀번호 확인
               </label>
               <input
                 type="password"
@@ -236,7 +236,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
                 value={formData.password_confirm}
                 onChange={handleInputChange}
                 className="w-full bg-slate-700 border-2 border-slate-600 rounded-lg p-3 text-slate-100 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
-                placeholder="Confirm your password"
+                placeholder="비밀번호를 다시 입력하세요"
                 disabled={isLoading}
               />
             </div>
@@ -253,39 +253,39 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
             disabled={isLoading}
             className="w-full bg-amber-400 text-slate-900 font-bold py-3 px-4 rounded-lg hover:bg-amber-300 transition-colors disabled:bg-slate-600 disabled:text-slate-400"
           >
-            {isLoading ? 'Processing...' : (mode === 'login' ? 'Login' : 'Sign Up')}
+            {isLoading ? '처리 중...' : (mode === 'login' ? '로그인' : '회원가입')}
           </button>
         </form>
 
         {/* Switch Mode */}
         <div className="mt-6 text-center">
           <p className="text-slate-400">
-            {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
+            {mode === 'login' ? '계정이 없으신가요?' : '이미 계정이 있으신가요?'}
           </p>
           <button
             onClick={switchMode}
             className="text-amber-400 hover:text-amber-300 font-medium mt-1"
             disabled={isLoading}
           >
-            {mode === 'login' ? 'Sign Up' : 'Login'}
+            {mode === 'login' ? '회원가입' : '로그인'}
           </button>
         </div>
 
         {/* Social Login Placeholder */}
         <div className="mt-6 pt-6 border-t border-slate-700">
           <div className="text-center text-slate-400 text-sm mb-4">
-            Or continue with social login
+또는 소셜 로그인으로 계속하기
           </div>
           <div className="space-y-2">
             <button className="w-full bg-white text-black font-medium py-3 px-4 rounded-lg hover:bg-gray-100 transition-colors">
-              Continue with Google
+Google로 계속하기
             </button>
             <button className="w-full bg-yellow-400 text-black font-medium py-3 px-4 rounded-lg hover:bg-yellow-300 transition-colors">
-              Continue with Kakao
+카카오로 계속하기
             </button>
           </div>
           <p className="text-xs text-slate-500 text-center mt-4">
-            Social login features will be available soon.
+소셜 로그인 기능은 곧 제공될 예정입니다.
           </p>
         </div>
       </div>

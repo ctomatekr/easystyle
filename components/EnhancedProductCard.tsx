@@ -116,7 +116,7 @@ const EnhancedProductCard: React.FC<EnhancedProductCardProps> = ({
               <p className="text-lg font-bold text-sky-600">{formatPrice(product.price)}</p>
               {product.recommendedSize && (
                 <p className="text-xs text-gray-500 mt-1">
-                  Recommended: {product.recommendedSize}
+                  추천 사이즈: {product.recommendedSize}
                 </p>
               )}
             </div>
@@ -126,7 +126,7 @@ const EnhancedProductCard: React.FC<EnhancedProductCardProps> = ({
                 onClick={handleDetailsClick}
                 className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1 rounded-full transition-colors"
               >
-                {showDetails ? 'Less' : 'Details'}
+                {showDetails ? '간단히' : '자세히'}
               </button>
             )}
           </div>
@@ -134,7 +134,7 @@ const EnhancedProductCard: React.FC<EnhancedProductCardProps> = ({
           {/* Store Information */}
           <div className="mt-2 pt-2 border-t border-gray-100">
             <p className="text-xs text-gray-400">
-              From {product.storeName}
+              {product.storeName}에서
             </p>
           </div>
         </div>
@@ -145,13 +145,13 @@ const EnhancedProductCard: React.FC<EnhancedProductCardProps> = ({
         <div className="absolute top-full left-0 right-0 z-10 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 p-4">
           <div className="space-y-3">
             <div>
-              <h4 className="font-semibold text-gray-900 mb-2">Product Details</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">상품 상세정보</h4>
               <div className="space-y-1 text-sm text-gray-600">
-                <p><span className="font-medium">Brand:</span> {product.brand}</p>
-                <p><span className="font-medium">Category:</span> {product.category}</p>
-                <p><span className="font-medium">Store:</span> {product.storeName}</p>
+                <p><span className="font-medium">브랜드:</span> {product.brand}</p>
+                <p><span className="font-medium">카테고리:</span> {product.category}</p>
+                <p><span className="font-medium">스토어:</span> {product.storeName}</p>
                 {product.recommendedSize && (
-                  <p><span className="font-medium">Recommended Size:</span> {product.recommendedSize}</p>
+                  <p><span className="font-medium">추천 사이즈:</span> {product.recommendedSize}</p>
                 )}
               </div>
             </div>
@@ -165,7 +165,7 @@ const EnhancedProductCard: React.FC<EnhancedProductCardProps> = ({
                     : 'bg-sky-500 text-white hover:bg-sky-600'
                 }`}
               >
-                {isSelected ? 'Selected' : 'Select Item'}
+                {isSelected ? '선택됨' : '상품 선택'}
               </button>
               
               <a
@@ -175,7 +175,7 @@ const EnhancedProductCard: React.FC<EnhancedProductCardProps> = ({
                 className="px-4 py-2 bg-yellow-500 text-white rounded-lg text-sm font-medium hover:bg-yellow-600 transition-colors"
                 onClick={(e) => e.stopPropagation()}
               >
-                View Store
+                스토어 보기
               </a>
             </div>
           </div>
