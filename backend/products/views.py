@@ -1,17 +1,19 @@
-from rest_framework import generics, status, permissions, filters
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework import generics, status, permissions, filters, viewsets
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Count, Avg
 from .models import (
-    ProductCategory, Brand, Store, Product, 
-    UserWishlist, StyleRecommendation, ProductAnalytics
+    ProductCategory, Brand, Store, Product,
+    UserWishlist, StyleRecommendation, ProductAnalytics,
+    Cart, CartItem
 )
 from .serializers import (
     ProductCategorySerializer, BrandSerializer, StoreSerializer,
     ProductListSerializer, ProductDetailSerializer, UserWishlistSerializer,
-    StyleRecommendationSerializer, ProductSearchSerializer, 
-    ProductRecommendationSerializer
+    StyleRecommendationSerializer, ProductSearchSerializer,
+    ProductRecommendationSerializer, CartSerializer, CartItemSerializer,
+    AddToCartSerializer, UpdateCartItemSerializer
 )
 
 
@@ -372,3 +374,106 @@ def product_statistics(request):
         })
     
     return Response(stats)
+
+
+class CartViewSet(viewsets.ModelViewSet):
+    """
+    장바구니 ViewSet
+    """
+    serializer_class = CartSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Cart.objects.filter(user=self.request.user).prefetch_related(
+            'items__product__brand',
+            'items__product__category'
+        )
+
+    def create(self, request, *args, **kwargs):
+        """장바구니는 사용자당 하나만 존재하므로 create 대신 get_or_create 사용"""
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        serializer = self.get_serializer(cart)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def list(self, request, *args, **kwargs):
+        """현재 사용자의 장바구니 조회"""
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        serializer = self.get_serializer(cart)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def add_item(self, request):
+        """장바구니에 상품 추가"""
+        serializer = AddToCartSerializer(data=request.data)
+        if serializer.is_valid():
+            cart, created = Cart.objects.get_or_create(user=request.user)
+
+            # CartItem 생성/업데이트
+            cart_item_serializer = CartItemSerializer(
+                data=request.data,
+                context={'request': request}
+            )
+            if cart_item_serializer.is_valid():
+                cart_item_serializer.save()
+
+                # 업데이트된 장바구니 반환
+                cart_serializer = CartSerializer(cart)
+                return Response(cart_serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(cart_item_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'])
+    def remove_item(self, request):
+        """장바구니에서 상품 제거"""
+        item_id = request.data.get('item_id')
+        if not item_id:
+            return Response({'error': 'item_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            cart = Cart.objects.get(user=request.user)
+            cart_item = CartItem.objects.get(id=item_id, cart=cart)
+            cart_item.delete()
+
+            # 업데이트된 장바구니 반환
+            cart_serializer = CartSerializer(cart)
+            return Response(cart_serializer.data, status=status.HTTP_200_OK)
+        except (Cart.DoesNotExist, CartItem.DoesNotExist):
+            return Response({'error': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['post'])
+    def update_item(self, request):
+        """장바구니 아이템 수량 변경"""
+        item_id = request.data.get('item_id')
+        if not item_id:
+            return Response({'error': 'item_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = UpdateCartItemSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                cart = Cart.objects.get(user=request.user)
+                cart_item = CartItem.objects.get(id=item_id, cart=cart)
+                cart_item.quantity = serializer.validated_data['quantity']
+                cart_item.save()
+
+                # 업데이트된 장바구니 반환
+                cart_serializer = CartSerializer(cart)
+                return Response(cart_serializer.data, status=status.HTTP_200_OK)
+            except (Cart.DoesNotExist, CartItem.DoesNotExist):
+                return Response({'error': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'])
+    def clear_cart(self, request):
+        """장바구니 비우기"""
+        try:
+            cart = Cart.objects.get(user=request.user)
+            cart.items.all().delete()
+
+            # 빈 장바구니 반환
+            cart_serializer = CartSerializer(cart)
+            return Response(cart_serializer.data, status=status.HTTP_200_OK)
+        except Cart.DoesNotExist:
+            return Response({'error': 'Cart not found'}, status=status.HTTP_404_NOT_FOUND)

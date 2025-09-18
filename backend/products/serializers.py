@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from .models import (
-    ProductCategory, Brand, Store, Product, 
-    UserWishlist, StyleRecommendation, ProductAnalytics
+    ProductCategory, Brand, Store, Product,
+    UserWishlist, StyleRecommendation, ProductAnalytics,
+    Cart, CartItem
 )
 
 
@@ -226,3 +227,96 @@ class ProductRecommendationSerializer(serializers.Serializer):
         child=serializers.CharField(max_length=50),
         required=False
     )
+
+
+class CartItemSerializer(serializers.ModelSerializer):
+    """
+    장바구니 상품 시리얼라이저
+    """
+    product = ProductListSerializer(read_only=True)
+    product_uuid = serializers.UUIDField(write_only=True)
+    subtotal = serializers.ReadOnlyField()
+
+    class Meta:
+        model = CartItem
+        fields = [
+            'id', 'product', 'product_uuid', 'size', 'quantity',
+            'style_set_id', 'subtotal', 'added_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'added_at', 'updated_at']
+
+    def create(self, validated_data):
+        product_uuid = validated_data.pop('product_uuid')
+        try:
+            product = Product.objects.get(uuid=product_uuid, is_available=True)
+            validated_data['product'] = product
+
+            # 사용자의 장바구니 가져오기 또는 생성
+            cart, created = Cart.objects.get_or_create(user=self.context['request'].user)
+            validated_data['cart'] = cart
+
+            # 같은 상품의 같은 사이즈가 이미 있는지 확인
+            existing_item = CartItem.objects.filter(
+                cart=cart,
+                product=product,
+                size=validated_data.get('size', '')
+            ).first()
+
+            if existing_item:
+                # 기존 아이템의 수량 증가
+                existing_item.quantity += validated_data.get('quantity', 1)
+                existing_item.save()
+                return existing_item
+            else:
+                # 새 아이템 생성
+                return super().create(validated_data)
+
+        except Product.DoesNotExist:
+            raise serializers.ValidationError('Product not found or not available')
+
+    def update(self, instance, validated_data):
+        # product_uuid가 있으면 제품 변경 (실제로는 거의 사용하지 않을 것)
+        if 'product_uuid' in validated_data:
+            product_uuid = validated_data.pop('product_uuid')
+            try:
+                product = Product.objects.get(uuid=product_uuid, is_available=True)
+                validated_data['product'] = product
+            except Product.DoesNotExist:
+                raise serializers.ValidationError('Product not found or not available')
+
+        return super().update(instance, validated_data)
+
+
+class CartSerializer(serializers.ModelSerializer):
+    """
+    장바구니 시리얼라이저
+    """
+    items = CartItemSerializer(many=True, read_only=True)
+    total_items = serializers.ReadOnlyField()
+    total_price = serializers.ReadOnlyField()
+    user = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Cart
+        fields = [
+            'id', 'user', 'items', 'total_items', 'total_price',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at']
+
+
+class AddToCartSerializer(serializers.Serializer):
+    """
+    장바구니 추가 요청용 시리얼라이저
+    """
+    product_uuid = serializers.UUIDField()
+    size = serializers.CharField(max_length=10, required=False, allow_blank=True)
+    quantity = serializers.IntegerField(min_value=1, max_value=10, default=1)
+    style_set_id = serializers.CharField(max_length=100, required=False, allow_blank=True)
+
+
+class UpdateCartItemSerializer(serializers.Serializer):
+    """
+    장바구니 아이템 수량 변경용 시리얼라이저
+    """
+    quantity = serializers.IntegerField(min_value=1, max_value=10)

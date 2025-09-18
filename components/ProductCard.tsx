@@ -1,17 +1,23 @@
 import React, { useState, useRef } from 'react';
 import { Product } from '../types';
 import { CheckCircleIcon, RadioButtonIcon } from './icons';
+import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface ProductCardProps {
   product: Product;
   isSelected: boolean;
   onSelect: () => void;
   fallbackImageUrl: string;
+  showCartButton?: boolean;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onSelect, fallbackImageUrl }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onSelect, fallbackImageUrl, showCartButton = false }) => {
   const [imgSrc, setImgSrc] = useState(product.imageUrl);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const hasTriedCroppedFallback = useRef(false);
+  const { addToCart, isInCart } = useCart();
+  const { isAuthenticated } = useAuth();
 
   const handleError = () => {
     // 1순위: 실제 상품 이미지 (초기값)
@@ -25,8 +31,30 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onSelect
     }
   };
 
+  // 모든 제품이 KRW 국내 쇼핑몰 제품이므로 KRW 형식으로 통일
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price / 1300); // Approximate USD conversion
+    return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(price);
+  };
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
+    setIsAddingToCart(true);
+    const success = await addToCart(
+      product.id,
+      product.recommendedSize || '',
+      1
+    );
+
+    if (success) {
+      // 성공 피드백은 context에서 관리됨
+    }
+    setIsAddingToCart(false);
   };
 
   return (
@@ -54,6 +82,26 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onSelect
             </span>
           )}
         </div>
+
+        {/* 장바구니 버튼 */}
+        {showCartButton && (
+          <button
+            onClick={handleAddToCart}
+            disabled={isAddingToCart || isInCart(product.id, product.recommendedSize)}
+            className={`mt-3 px-3 py-2 text-sm rounded-lg font-medium transition-colors ${
+              isInCart(product.id, product.recommendedSize)
+                ? 'bg-green-100 text-green-700 cursor-default'
+                : 'bg-sky-500 text-white hover:bg-sky-600 disabled:bg-gray-300'
+            }`}
+          >
+            {isAddingToCart
+              ? '추가 중...'
+              : isInCart(product.id, product.recommendedSize)
+              ? '장바구니에 있음'
+              : '장바구니 추가'
+            }
+          </button>
+        )}
       </div>
       <div className="absolute top-2 right-2">
         {isSelected

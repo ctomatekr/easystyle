@@ -27,10 +27,14 @@ class User(AbstractUser):
     last_style_request = models.DateTimeField(null=True, blank=True)
     total_style_requests = models.PositiveIntegerField(default=0)
     
+    # Social login fields
+    provider = models.CharField(max_length=50, blank=True, null=True, help_text="Social login provider (google, kakao)")
+    provider_id = models.CharField(max_length=100, blank=True, null=True, help_text="Provider user ID")
+
     # Account settings
     email_notifications = models.BooleanField(default=True)
     style_recommendations = models.BooleanField(default=True)
-    
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -3,7 +3,7 @@
  * 백엔드 API와의 모든 통신을 관리하는 서비스
  */
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 // API 응답 타입 정의
 export interface ApiResponse<T> {
@@ -25,6 +25,8 @@ export interface User {
   first_name: string;
   last_name: string;
   full_name: string;
+  provider?: string;
+  provider_id?: string;
   profile?: UserProfile;
   created_at: string;
 }
@@ -95,6 +97,12 @@ class ApiClient {
       console.error('API 오류:', response.status, response.statusText);
       const errorData = await response.json().catch(() => ({}));
       console.error('오류 데이터:', errorData);
+
+      // 백엔드에서 온 유효성 검증 에러를 그대로 전달
+      if (response.status === 400 && errorData) {
+        throw errorData;
+      }
+
       throw new Error(errorData.message || `HTTP Error: ${response.status}`);
     }
 
@@ -208,6 +216,19 @@ export const authAPI = {
     recent_styles: any[];
   }> {
     return apiClient.get('/auth/dashboard/');
+  },
+
+  // 소셜 로그인
+  async socialLogin(provider: 'google' | 'kakao', accessToken: string): Promise<AuthResponse> {
+    const response = await apiClient.post<AuthResponse>(`/auth/social/${provider}/`, {
+      access_token: accessToken
+    });
+    apiClient.setAuthToken(response.token);
+    return response;
+  },
+
+  async socialDisconnect(): Promise<{ message: string }> {
+    return apiClient.post('/auth/social/disconnect/', {});
   }
 };
 
@@ -316,6 +337,111 @@ export const styleAPI = {
   }): Promise<any> {
     return apiClient.post('/products/recommendations/', data);
   }
+};
+
+// 파일 업로드 관련 API
+export const uploadAPI = {
+  async uploadStyleImage(file: File): Promise<{
+    message: string;
+    file_path: string;
+    file_url: string;
+    original_name: string;
+  }> {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await fetch(`${API_BASE_URL}/products/upload/style-image/`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Upload failed');
+    }
+
+    return response.json();
+  },
+
+  async uploadProfilePicture(file: File): Promise<{
+    message: string;
+    file_path: string;
+    file_url: string;
+  }> {
+    const token = localStorage.getItem('authToken');
+    const formData = new FormData();
+    formData.append('profile_picture', file);
+
+    const response = await fetch(`${API_BASE_URL}/products/upload/profile-picture/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Token ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Upload failed');
+    }
+
+    return response.json();
+  },
+
+  async deleteProfilePicture(): Promise<{ message: string }> {
+    return apiClient.delete('/products/upload/profile-picture/delete/');
+  },
+
+  async getUploadInfo(): Promise<{
+    style_image: {
+      max_size_mb: number;
+      allowed_formats: string[];
+      max_resolution: string;
+      description: string;
+    };
+    profile_picture: {
+      max_size_mb: number;
+      allowed_formats: string[];
+      max_resolution: string;
+      description: string;
+    };
+  }> {
+    return apiClient.get('/products/upload/info/');
+  }
+};
+
+// 장바구니 관련 API
+export const cartAPI = {
+  async getCart(): Promise<any> {
+    return apiClient.get('/products/cart/');
+  },
+
+  async addToCart(data: {
+    product_uuid: string;
+    size?: string;
+    quantity?: number;
+    style_set_id?: string;
+  }): Promise<{ message: string; cart_item: any }> {
+    return apiClient.post('/products/cart/add_item/', data);
+  },
+
+  async updateCartItem(itemId: number, quantity: number): Promise<any> {
+    return apiClient.post('/products/cart/update_item/', {
+      item_id: itemId,
+      quantity
+    });
+  },
+
+  async removeFromCart(itemId: number): Promise<{ message: string }> {
+    return apiClient.post('/products/cart/remove_item/', {
+      item_id: itemId
+    });
+  },
+
+  async clearCart(): Promise<{ message: string }> {
+    return apiClient.post('/products/cart/clear_cart/', {});
+  },
+
 };
 
 // 유틸리티 함수

@@ -9,7 +9,7 @@
 - **서비스 워커**: 오프라인 지원 및 캐싱 구현 (`/public/sw.js`)
 
 ### 2. 성능 최적화
-- **이미지 최적화**: 자동 리사이즈, 압축, WebP 지원 (`/utils/imageOptimization.ts`)
+- **이미지 최적화**: 자동 리사이즈, 압축, WebP 지원 ㅡctomatekr(`/utils/imageOptimization.ts`)
 - **스켈레톤 UI**: 로딩 상태 개선 (`/components/SkeletonUI.tsx`)
 - **에러 경계**: React Error Boundary 구현 (`/components/ErrorBoundary.tsx`)
 

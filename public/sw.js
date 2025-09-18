@@ -1,11 +1,14 @@
 // Service Worker for EasyStyle PWA
-const CACHE_NAME = 'easystyle-v1.0.1';
+const CACHE_NAME = 'easystyle-v1.0.3';
 const STATIC_CACHE_URLS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/icons/icon-144x144.svg',
   '/icons/icon-192x192.svg',
-  '/icons/icon-512x512.svg'
+  '/icons/icon-512x512.svg',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png'
 ];
 
 // Install event - cache static resources

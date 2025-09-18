@@ -10,8 +10,18 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="EasyStyle" />
+
+    <!-- Samsung Browser PWA Support -->
+    <meta name="samsung-web-app-capable" content="yes" />
+    <meta name="samsung-web-app-status-bar-style" content="black-translucent" />
+    <meta name="samsung-web-app-title" content="EasyStyle" />
+
     <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/icons/icon-192x192.svg" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+
+    <!-- Samsung Browser Icon -->
+    <link rel="shortcut icon" href="/icons/icon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
     <title>EasyStyle - Your Personal Stylist</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,6 +49,9 @@
     <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
   <script>
+    // PWA Install Prompt Handler
+    let deferredPrompt;
+
     // Register Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -51,6 +64,127 @@
           });
       });
     }
+
+    // PWA 진단 및 설치 조건 체크
+    function checkPWARequirements() {
+      const isSamsungBrowser = /SamsungBrowser/i.test(navigator.userAgent);
+      const isAndroid = /Android/i.test(navigator.userAgent);
+
+      const requirements = {
+        'HTTPS': location.protocol === 'https:' || location.hostname === 'localhost',
+        'Service Worker': 'serviceWorker' in navigator,
+        'Manifest': document.querySelector('link[rel="manifest"]') !== null,
+        'Valid Icons': true, // 아이콘은 이미 확인됨
+        'Samsung Browser': isSamsungBrowser ? '✅ Samsung Browser 감지됨' : '❌ Samsung Browser 아님',
+        'Android Platform': isAndroid ? '✅ Android 플랫폼' : '❌ Android 아님'
+      };
+
+      console.log('PWA Requirements Check:', requirements);
+      console.log('User Agent:', navigator.userAgent);
+
+      if (isSamsungBrowser) {
+        console.log('🔧 Samsung Browser 특화 설정:', {
+          'samsung-web-app-capable': document.querySelector('meta[name="samsung-web-app-capable"]')?.content,
+          'samsung-web-app-title': document.querySelector('meta[name="samsung-web-app-title"]')?.content,
+          'theme-color': document.querySelector('meta[name="theme-color"]')?.content
+        });
+      }
+
+      const allMet = Object.values(requirements).slice(0, 4).every(req => req);
+      console.log('All PWA requirements met:', allMet);
+
+      if (!allMet) {
+        console.warn('PWA 설치 조건이 충족되지 않았습니다:', requirements);
+      }
+
+      return allMet;
+    }
+
+    // Handle PWA Install Prompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+      console.log('✅ PWA install prompt available!');
+      e.preventDefault();
+      deferredPrompt = e;
+
+      // Show custom install button or UI here
+      const installPrompt = document.createElement('div');
+      installPrompt.innerHTML = `
+        <div style="position: fixed; top: 20px; right: 20px; background: #f59e0b; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 10000; font-family: 'Quicksand', sans-serif; cursor: pointer;" id="pwa-install-prompt">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span>📱</span>
+            <span>앱 설치</span>
+            <span style="background: rgba(255,255,255,0.2); border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; margin-left: 8px;" onclick="event.stopPropagation(); document.getElementById('pwa-install-prompt').remove();">×</span>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(installPrompt);
+
+      document.getElementById('pwa-install-prompt').addEventListener('click', async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log('PWA install outcome:', outcome);
+          deferredPrompt = null;
+          document.getElementById('pwa-install-prompt').remove();
+        }
+      });
+    });
+
+    // PWA 진단 실행 (5초 후)
+    setTimeout(() => {
+      if (!deferredPrompt) {
+        console.log('❌ beforeinstallprompt 이벤트가 발생하지 않았습니다.');
+        checkPWARequirements();
+
+        // Samsung Browser 감지 시 특별 가이드 표시
+        const isSamsungBrowser = /SamsungBrowser/i.test(navigator.userAgent);
+
+        if (isSamsungBrowser) {
+          const samsungGuide = document.createElement('div');
+          samsungGuide.innerHTML = `
+            <div style="position: fixed; top: 70px; right: 20px; background: #6366f1; color: white; padding: 12px 16px; border-radius: 6px; font-size: 11px; z-index: 10000; font-family: 'Quicksand', sans-serif; max-width: 250px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" id="samsung-guide">
+              <div style="margin-bottom: 8px; font-weight: bold;">📱 Samsung Browser 설치 방법</div>
+              <div style="margin-bottom: 4px;">1. 메뉴 (≡) 클릭</div>
+              <div style="margin-bottom: 4px;">2. "앱으로 추가" 선택</div>
+              <div style="margin-bottom: 8px;">3. "설치" 버튼 클릭</div>
+              <div style="font-size: 10px; opacity: 0.8; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 4px;">
+                또는 주소창 오른쪽 + 아이콘 확인
+              </div>
+              <div style="text-align: center; margin-top: 8px;">
+                <span style="background: rgba(255,255,255,0.2); border-radius: 50%; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer;" onclick="document.getElementById('samsung-guide').remove();">×</span>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(samsungGuide);
+        }
+
+        // 수동 설치 버튼 표시 (진단용)
+        const diagButton = document.createElement('div');
+        diagButton.innerHTML = `
+          <div style="position: fixed; top: ${isSamsungBrowser ? '270px' : '70px'}; right: 20px; background: #dc2626; color: white; padding: 8px 16px; border-radius: 6px; font-size: 12px; z-index: 10000; font-family: 'Quicksand', sans-serif; cursor: pointer;" id="pwa-diag-button">
+            PWA 진단
+          </div>
+        `;
+
+        document.body.appendChild(diagButton);
+
+        document.getElementById('pwa-diag-button').addEventListener('click', () => {
+          checkPWARequirements();
+          console.log('현재 브라우저:', navigator.userAgent);
+        });
+      }
+    }, 5000);
+
+    // Handle successful PWA installation
+    window.addEventListener('appinstalled', (e) => {
+      console.log('PWA was installed');
+      deferredPrompt = null;
+      const installPrompt = document.getElementById('pwa-install-prompt');
+      if (installPrompt) {
+        installPrompt.remove();
+      }
+    });
   </script>
 </body>
 </html>

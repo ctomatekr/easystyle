@@ -22,5 +22,6 @@ export interface Product {
   productUrl: string;
   storeName: string;
   category: ProductCategory;
+  currency?: string;
   croppedImageBase64?: string;
 }

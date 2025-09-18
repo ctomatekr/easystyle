@@ -27,7 +27,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-f&xd3yj^1x6!)803mk8y-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,0.0.0.0').split(',')
+ALLOWED_HOSTS = ['*']  # 개발 환경에서 모든 호스트 허용
 
 
 # Application definition
@@ -165,12 +165,8 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
 }
 
-# CORS settings for frontend integration
-CORS_ALLOWED_ORIGINS = config(
-    'CORS_ALLOWED_ORIGINS', 
-    default='http://localhost:3000,http://localhost:5173,http://localhost:5174,http://127.0.0.1:3000,http://127.0.0.1:5173,http://127.0.0.1:5174'
-).split(',')
-
+# CORS settings for frontend integration (개발 환경)
+CORS_ALLOW_ALL_ORIGINS = True  # 개발 환경에서 모든 오리진 허용
 CORS_ALLOW_CREDENTIALS = True
 
 # Media files configuration
@@ -179,6 +175,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Custom User Model
 AUTH_USER_MODEL = 'authentication.User'
+
+# Social Login Configuration
+GOOGLE_OAUTH2_CLIENT_ID = config('GOOGLE_OAUTH2_CLIENT_ID', default='')
+GOOGLE_OAUTH2_CLIENT_SECRET = config('GOOGLE_OAUTH2_CLIENT_SECRET', default='')
+
+KAKAO_CLIENT_ID = config('KAKAO_CLIENT_ID', default='')
+KAKAO_CLIENT_SECRET = config('KAKAO_CLIENT_SECRET', default='')
 
 # EasyStyle specific settings
 EASYSTYLE_SETTINGS = {

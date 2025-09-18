@@ -1,5 +1,12 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from . import views
+from . import upload_views
+from . import inventory_views
+
+# ViewSet을 위한 Router 설정
+router = DefaultRouter()
+router.register(r'cart', views.CartViewSet, basename='cart')
 
 app_name = 'products'
 
@@ -22,4 +29,21 @@ urlpatterns = [
     
     # 스타일 추천
     path('recommendations/', views.StyleRecommendationListView.as_view(), name='recommendations'),
+
+    # 파일 업로드
+    path('upload/style-image/', upload_views.upload_style_image, name='upload-style-image'),
+    path('upload/profile-picture/', upload_views.upload_profile_picture, name='upload-profile-picture'),
+    path('upload/profile-picture/delete/', upload_views.delete_profile_picture, name='delete-profile-picture'),
+    path('upload/info/', upload_views.get_upload_info, name='upload-info'),
+
+    # 재고 관리 및 구매 가능성 확인
+    path('inventory/check-multiple/', inventory_views.check_multiple_products_inventory, name='check-multiple-inventory'),
+    path('inventory/check-styling/', inventory_views.check_styling_products_inventory, name='check-styling-inventory'),
+    path('inventory/status/<uuid:product_uuid>/', inventory_views.get_product_inventory_status, name='inventory-status'),
+    path('inventory/score/<uuid:product_uuid>/', inventory_views.get_purchaseability_score, name='purchaseability-score'),
+    path('inventory/statistics/', inventory_views.get_inventory_statistics, name='inventory-statistics'),
+    path('inventory/alternatives/<uuid:product_uuid>/', inventory_views.get_alternative_products, name='find-alternatives'),
+
+    # Router로 관리되는 ViewSet URLs 포함
+    path('', include(router.urls)),
 ]

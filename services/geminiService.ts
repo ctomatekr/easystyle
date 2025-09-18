@@ -3,7 +3,7 @@ import type { Product } from '../types';
 import { ProductCategory } from '../types';
 import { productsAPI } from './apiService';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
 const fileToGenerativePart = (base64Data: string, mimeType: string) => {
   return {
@@ -186,19 +186,22 @@ export const getProductsForStyle = async (description: string): Promise<Product[
         
         const response = await productsAPI.searchProducts(searchData);
         
-        // 백엔드 응답을 프론트엔드 Product 타입으로 변환
-        const products: Product[] = response.results.map((item: any) => ({
-            id: item.uuid,
-            brand: item.brand_name,
-            name: item.name,
-            price: item.current_price,
-            imageUrl: item.main_image,
-            recommendedSize: item.recommended_size || 'M',
-            productUrl: item.product_url,
-            storeName: item.store_name,
-            category: mapCategoryToEnum(item.category_name),
-            isSelected: false
-        }));
+        // 백엔드 응답을 프론트엔드 Product 타입으로 변환 (KRW 제품만 필터링)
+        const products: Product[] = response.results
+            .filter((item: any) => item.currency === 'KRW') // 국내 쇼핑몰 제품만 필터링
+            .map((item: any) => ({
+                id: item.uuid,
+                brand: item.brand_name,
+                name: item.name,
+                price: item.current_price,
+                imageUrl: item.main_image,
+                recommendedSize: item.recommended_size || 'M',
+                productUrl: item.product_url,
+                storeName: item.store_name,
+                category: mapCategoryToEnum(item.category_name),
+                currency: item.currency || 'KRW',
+                isSelected: false
+            }));
         
         return products.slice(0, 5); // 최대 5개 상품만 반환
 
@@ -226,18 +229,22 @@ const mapCategoryToEnum = (categoryName: string): ProductCategory => {
 const getFallbackProducts = async (): Promise<Product[]> => {
     try {
         const response = await productsAPI.getProducts({ sort_by: 'newest' });
-        return response.results.slice(0, 5).map((item: any) => ({
-            id: item.uuid,
-            brand: item.brand_name,
-            name: item.name,
-            price: item.current_price,
-            imageUrl: item.main_image,
-            recommendedSize: item.recommended_size || 'M',
-            productUrl: item.product_url,
-            storeName: item.store_name,
-            category: mapCategoryToEnum(item.category_name),
-            isSelected: false
-        }));
+        return response.results
+            .filter((item: any) => item.currency === 'KRW') // 국내 쇼핑몰 제품만 필터링
+            .slice(0, 5)
+            .map((item: any) => ({
+                id: item.uuid,
+                brand: item.brand_name,
+                name: item.name,
+                price: item.current_price,
+                imageUrl: item.main_image,
+                recommendedSize: item.recommended_size || 'M',
+                productUrl: item.product_url,
+                storeName: item.store_name,
+                category: mapCategoryToEnum(item.category_name),
+                currency: item.currency || 'KRW',
+                isSelected: false
+            }));
     } catch (e) {
         console.error("기본 상품 목록 조회 실패:", e);
         return [];
